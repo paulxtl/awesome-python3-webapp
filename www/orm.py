@@ -60,4 +60,50 @@ async def excute(sql, args):
         return affected
 
 
+# ORM
+class Model(dict, metaclass=ModelMetaclass):
+    
+    def __init__(self, **kwargs):
+        super(Model, self).__init__(**kwargs)
+
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(r"'Model' object has no attribute '%s'" % key)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    def getValue(self, key):
+        return getattr(self, key, None)
+
+    def getValueOrDefault(self, key):
+        value = getattr(self, key, None)
+        if value is None:
+            field = self.__mappings__[key]
+        if field.default is not None:
+            value = field.default if callable(field.default) else field.default
+            logging.debug('using default value for %s: %s' % (key, str(value)))
+            setattr(self, key, value)
+        return value
+
+
+# Field
+class Field(object):
+    def __init__(self, name, column_type, primary_key, default):
+        self.__name = name
+        self.__column_type = column_type
+        self.__primary_key = primary_key
+        self.__default = default
+
+    def __str__(self):
+        return '<%s, %s:%s>' % (self.__class__.__name__, self.__column_type, self.__name)
+
+
+# StringField
+class StringField(Field):
+    def __init__(self, name=None, primary_key=False, default=None, ddl='varchar(100)'):
+        super(StringField, self).__init__(name, ddl, primary_key, default)
+
 
