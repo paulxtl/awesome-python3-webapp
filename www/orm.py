@@ -66,9 +66,76 @@ async def execute(sql, args, autocommit=True):
         return affected
 
 
+# create args string method
+def create_args_string(num):
+    L = []
+    for n in range(num):
+        L.append('?')
+    return ','.join(L)
+
+
+# Field
+class Field(object):
+    def __init__(self, name, column_type, primary_key, default):
+        self.__name = name
+        self.__column_type = column_type
+        self.__primary_key = primary_key
+        self.__default = default
+
+    def __str__(self):
+        return '<%s, %s:%s>' % (self.__class__.__name__, self.__column_type, self.__name)
+
+
+# StringField
+class StringField(Field):
+    def __init__(self, name=None, primary_key=False, default=None, ddl='varchar(100)'):
+        super().__init__(name, ddl, primary_key, default)
+
+
+# BooleanField
+class BooleanField(Field):
+    def __init__(self, name=None, default=None):
+        super().__init__(name, 'boolean', False, default)
+
+
+# IntegerField
+class IntegerField(Field):
+    def __init__(self, name=None, primary_key=False, default=0):
+        super().__init__(name, 'bigint', primary_key, default)
+
+
+# FloatField
+class FloatField(Field):
+    def __init__(self, name=None, primary_key=False, default=0.0):
+        super().__init__(name, 'real', primary_key, default)
+
+
+# TextField
+class TextField(Field):
+    def __init__(self, name=None, default=None):
+        super().__init__(name, 'text', False, default)
+
+
+# ModelMetaclass
+class ModelMetaclass(type):
+    def __new__(cls, name, bases, attrs):
+        # 排除Model类本身:
+        if name == 'model':
+            return type.__new__(cls, name, bases, attrs)
+        # 获取table名称
+        tableName = attrs.get('__table__', None) or name
+        logging.info('found model: %s (table: %s)' % (name, tableName))
+        mappings = dict()
+        fields = []
+        primarykey = None
+
+
+
+
+
 # ORM
 class Model(dict, metaclass=ModelMetaclass):
-    
+
     def __init__(self, **kwargs):
         super(Model, self).__init__(**kwargs)
 
@@ -93,23 +160,3 @@ class Model(dict, metaclass=ModelMetaclass):
             logging.debug('using default value for %s: %s' % (key, str(value)))
             setattr(self, key, value)
         return value
-
-
-# Field
-class Field(object):
-    def __init__(self, name, column_type, primary_key, default):
-        self.__name = name
-        self.__column_type = column_type
-        self.__primary_key = primary_key
-        self.__default = default
-
-    def __str__(self):
-        return '<%s, %s:%s>' % (self.__class__.__name__, self.__column_type, self.__name)
-
-
-# StringField
-class StringField(Field):
-    def __init__(self, name=None, primary_key=False, default=None, ddl='varchar(100)'):
-        super(StringField, self).__init__(name, ddl, primary_key, default)
-
-
