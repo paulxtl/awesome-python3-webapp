@@ -23,7 +23,7 @@ from config import configs
 
 
 def index(request):
-    return web.Response(body=b'<h1>Awesome</h1>', content_type='text/html')
+    return web.Response(body=b'pip<h1>Awesome</h1>', content_type='text/html')
 
 
 def init_jinja2(app, **kw):
