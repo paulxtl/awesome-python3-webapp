@@ -83,7 +83,7 @@ class Field(object):
         self.default = default
 
     def __str__(self):
-        return '<%s, %s:%s>' % (self.__class__.__name__, self.__column_type, self.__name)
+        return '<%s, %s:%s>' % (self.__class__.__name__, self.column_type, self.name)
 
 
 # StringField
@@ -94,7 +94,7 @@ class StringField(Field):
 
 # BooleanField
 class BooleanField(Field):
-    def __init__(self, name=None, default=None):
+    def __init__(self, name=None, default=False):
         super().__init__(name, 'boolean', False, default)
 
 
@@ -120,7 +120,7 @@ class TextField(Field):
 class ModelMetaclass(type):
     def __new__(cls, name, bases, attrs):
         # 排除Model类本身:
-        if name == 'model':
+        if name == 'Model':
             return type.__new__(cls, name, bases, attrs)
         # 获取table名称
         tableName = attrs.get('__table__', None) or name
@@ -143,7 +143,7 @@ class ModelMetaclass(type):
         for k in mappings.keys():
             attrs.pop(k)
         escaped_fields = list(map(lambda f: '`%s`' % f, fields))
-        attrs['__mapping__'] = mappings
+        attrs['__mappings__'] = mappings
         attrs['__table__'] = tableName
         attrs['__primary_key__'] = primarykey
         attrs['__fields__'] = fields
@@ -179,10 +179,10 @@ class Model(dict, metaclass=ModelMetaclass):
         value = getattr(self, key, None)
         if value is None:
             field = self.__mappings__[key]
-        if field.default is not None:
-            value = field.default if callable(field.default) else field.default
-            logging.debug('using default value for %s: %s' % (key, str(value)))
-            setattr(self, key, value)
+            if field.default is not None:
+                value = field.default() if callable(field.default) else field.default
+                logging.debug('using default value for %s: %s' % (key, str(value)))
+                setattr(self, key, value)
         return value
 
     @classmethod

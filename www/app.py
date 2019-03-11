@@ -10,6 +10,9 @@ from datetime import datetime
 
 from aiohttp import web
 
+import orm
+from Models import User, Blog, Comment
+
 
 def index(request):
     return web.Response(body=b'<h1>Awesome</h1>', content_type='text/html')
@@ -29,9 +32,16 @@ async def init(loop):
     return srv
 
 
+async def test(loop):
+    await orm.create_pool(loop=loop, host='127.0.0.1', user='www-data', password='www-data', db='awesome')
+    u = User(name='Test', email='test1@example.com', passwd='123456', image='about:blank')
+    await u.save()
+
+
 if __name__ == '__main__':
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(init(loop))
+    # loop.run_until_complete(init(loop))
+    loop.run_until_complete(test(loop))
     loop.run_forever()
     # init()
