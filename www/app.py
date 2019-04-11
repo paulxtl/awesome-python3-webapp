@@ -19,6 +19,8 @@ import orm
 from Models import User, Blog, Comment
 from coroweb import add_routes, add_static
 
+from config import configs
+
 
 def index(request):
     return web.Response(body=b'<h1>Awesome</h1>', content_type='text/html')
@@ -141,7 +143,8 @@ def datetime_filter(t):
 
 
 async def init(loop):
-    await orm.create_pool(loop=loop, host='127.0.0.1', user='www-data', password='www-data', db='awesome')
+    # await orm.create_pool(loop=loop, host='127.0.0.1', user='www-data', password='www-data', db='awesome')
+    await orm.create_pool(loop=loop, **configs.db)
     app = web.Application(loop=loop, middlewares=[
         logger_factory, response_factory
     ])

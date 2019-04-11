@@ -52,13 +52,14 @@ def toDict(d):
     return D
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    configs = config_default.configs
-    try:
-        import config_override
-        configs = merge(configs, config_override.configs)
-    except ImportError:
-        pass
+configs = config_default.configs
 
-    configs = toDict(configs)
+try:
+    import config_override
+    configs = merge(configs, config_override.configs)
+except ImportError:
+    pass
+
+configs = toDict(configs)
