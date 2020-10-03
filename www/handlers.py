@@ -10,7 +10,7 @@ import re,time, json, logging, hashlib, base64, asyncio
 
 from coroweb import get, post
 
-from Models import User, Comment, Blog,
+from Models import User, Comment, Blog
 
 @get('/')
 def index(request):
