@@ -21,6 +21,8 @@ from coroweb import add_routes, add_static
 
 from config import configs
 
+from dxfwrite import DXFEngine as dxf
+
 
 def index(request):
     return web.Response(body=b'pip<h1>Awesome</h1>', content_type='text/html')
@@ -38,7 +40,7 @@ def init_jinja2(app, **kw):
     )
     path = kw.get('path', None)
     if path is None:
-        path = os.path.join(os.path.dirname(os.abspath(__file__)), 'templates')
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
     logging.info('set jinja2 template path:%s' % path)
     env = Environment(loader=FileSystemLoader(path), **options)
     filters = kw.get('filters', None)
@@ -141,17 +143,17 @@ def datetime_filter(t):
 #     u = User(name='Test', email='test1@example.com', passwd='123456', image='about:blank')
 #     await u.save()
 
-
-async def init(loop):
+@asyncio.coroutine
+def init(loop):
     # await orm.create_pool(loop=loop, host='127.0.0.1', user='www-data', password='www-data', db='awesome')
-    await orm.create_pool(loop=loop, **configs.db)
+    yield from orm.create_pool(loop=loop, **configs.db)
     app = web.Application(loop=loop, middlewares=[
         logger_factory, response_factory
     ])
     init_jinja2(app, filters=dict(datetime=datetime_filter))
     add_routes(app, 'handlers')
     add_static(app)
-    srv = await loop.create_server(app.make_handler(), '127.0.0.1', 9000)
+    srv = yield from loop.create_server(app.make_handler(), '127.0.0.1', 9000)
     logging.info('server started at http://127.0.0.1:9000...')
     return srv
 
